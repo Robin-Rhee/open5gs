@@ -79,6 +79,7 @@ void gmm_state_final(ogs_fsm_t *s, amf_event_t *e)
 
 void gmm_state_de_registered(ogs_fsm_t *s, amf_event_t *e)
 {
+    ogs_trace ("#CyberRange# gmm_state_de_registered");
     amf_ue_t *amf_ue = NULL;
     amf_sess_t *sess = NULL;
 
@@ -144,6 +145,7 @@ void gmm_state_de_registered(ogs_fsm_t *s, amf_event_t *e)
         break;
 
     case AMF_EVENT_5GMM_MESSAGE:
+        ogs_trace ("#CyberRange# gmm_state_de_registered (AMF_EVENT_5GMM_MESSAGE)");
         common_register_state(s, e, GMM_COMMON_STATE_DEREGISTERED);
         break;
 
@@ -642,6 +644,7 @@ void gmm_state_de_registered(ogs_fsm_t *s, amf_event_t *e)
 
 void gmm_state_registered(ogs_fsm_t *s, amf_event_t *e)
 {
+    ogs_trace ("#CyberRange# gmm_state_registered");
     int i, r, state, xact_count = 0;
 
     amf_ue_t *amf_ue = NULL;
@@ -682,6 +685,7 @@ void gmm_state_registered(ogs_fsm_t *s, amf_event_t *e)
         break;
 
     case AMF_EVENT_5GMM_MESSAGE:
+        ogs_trace ("#CyberRange# gmm_state_registered (AMF_EVENT_5GMM_MESSAGE)");
         common_register_state(s, e, GMM_COMMON_STATE_REGISTERED);
         break;
 
@@ -844,6 +848,7 @@ void gmm_state_registered(ogs_fsm_t *s, amf_event_t *e)
                     ogs_expect(r == OGS_OK);
                     ogs_assert(r != OGS_ERROR);
             }
+
             break;
 
         default:
@@ -1276,6 +1281,7 @@ void gmm_state_registered(ogs_fsm_t *s, amf_event_t *e)
 static void common_register_state(ogs_fsm_t *s, amf_event_t *e,
         gmm_common_state_e state)
 {
+    ogs_trace ("#CyberRange# common_register_state");
     int r, xact_count = 0;
     ogs_nas_5gmm_cause_t gmm_cause;
 
@@ -1298,10 +1304,12 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e,
 
     /* If transition is from REGISTERED, allow restoration */
     if (state == GMM_COMMON_STATE_REGISTERED) {
+        ogs_trace ("#CyberRange# common_register_state (state == GMM_COMMON_STATE_REGISTERED)");
         amf_ue->can_restore_context = 1;
         amf_ue_save_memento(amf_ue, &amf_ue->memento);
     } else if (state == GMM_COMMON_STATE_DEREGISTERED) {
         /* Transition from de-registered: do not restore */
+        ogs_trace ("#CyberRange# common_register_state (state == GMM_COMMON_STATE_DEREGISTERED)");
         amf_ue->can_restore_context = 0;
     } else
         ogs_assert_if_reached();
@@ -1675,6 +1683,7 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e,
             break;
 
         case OGS_NAS_5GS_UL_NAS_TRANSPORT:
+            ogs_trace ("#CyberRange# common_register_state (OGS_NAS_5GS_UL_NAS_TRANSPORT) checks if SECURITY_CONTEXT_IS_VALID");
             if (!h.integrity_protected || !SECURITY_CONTEXT_IS_VALID(amf_ue)) {
                 ogs_error("No Security Context");
                 AMF_RESTORE_CONTEXT_ON_FAILURE(amf_ue, s);

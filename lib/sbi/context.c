@@ -2129,7 +2129,7 @@ bool ogs_sbi_discovery_option_is_matched(
         ogs_sbi_discovery_option_t *discovery_option)
 {
     ogs_sbi_nf_info_t *nf_info = NULL;
-
+    
     ogs_assert(nf_instance);
     ogs_assert(requester_nf_type);
     ogs_assert(discovery_option);
@@ -2139,50 +2139,80 @@ bool ogs_sbi_discovery_option_is_matched(
             discovery_option->target_nf_instance_id) != 0) {
         return false;
     }
-
     if (discovery_option->num_of_service_names) {
         if (ogs_sbi_discovery_option_service_names_is_matched(
                     nf_instance, requester_nf_type, discovery_option) == false)
             return false;
     }
-
     if (discovery_option->num_of_target_plmn_list) {
         if (ogs_sbi_discovery_option_target_plmn_list_is_matched(
                     nf_instance, discovery_option) == false)
             return false;
     }
 
+    // #CyberRange#  Original code
+    // ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+    //     if (nf_instance->nf_type != nf_info->nf_type) {
+    //         ogs_error("Invalid NF-Type [%d:%d]",
+    //                 nf_instance->nf_type, nf_info->nf_type);
+    //         return false;
+    //     }
+    //
+    //     switch (nf_info->nf_type) {
+    //     case OpenAPI_nf_type_AMF:
+    //         if (requester_nf_type == OpenAPI_nf_type_AMF &&
+    //             discovery_option->guami_presence &&
+    //             ogs_sbi_check_amf_info_guami(&nf_info->amf,
+    //                 &discovery_option->guami) == false)
+    //             return false;
+    //         break;
+    //     case OpenAPI_nf_type_SMF:
+    //         if (discovery_option->num_of_snssais && discovery_option->dnn &&
+    //             ogs_sbi_check_smf_info_slice(&nf_info->smf,
+    //                 &discovery_option->snssais[0],
+    //                 discovery_option->dnn) == false)
+    //             return false;
+    //         if (discovery_option->tai_presence &&
+    //             ogs_sbi_check_smf_info_tai(&nf_info->smf,
+    //                 &discovery_option->tai) == false)
+    //             return false;
+    //         break;
+    //     default:
+    //         break;
+    //     }
+    // }
+
+    // #CyberRange#  Refactor SMF info parsing
+
+    // Check the compliance of NF type against configuration
     ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
         if (nf_instance->nf_type != nf_info->nf_type) {
-            ogs_error("Invalid NF-Type [%d:%d]",
-                    nf_instance->nf_type, nf_info->nf_type);
+            ogs_error("Invalid NF-Type [%d:%d]", nf_instance->nf_type, nf_info->nf_type);
             return false;
         }
-
-        switch (nf_info->nf_type) {
-        case OpenAPI_nf_type_AMF:
-            if (requester_nf_type == OpenAPI_nf_type_AMF &&
-                discovery_option->guami_presence &&
-                ogs_sbi_check_amf_info_guami(&nf_info->amf,
-                    &discovery_option->guami) == false)
-                return false;
-            break;
-        case OpenAPI_nf_type_SMF:
-            if (discovery_option->num_of_snssais && discovery_option->dnn &&
-                ogs_sbi_check_smf_info_slice(&nf_info->smf,
-                    &discovery_option->snssais[0],
-                    discovery_option->dnn) == false)
-                return false;
-            if (discovery_option->tai_presence &&
-                ogs_sbi_check_smf_info_tai(&nf_info->smf,
-                    &discovery_option->tai) == false)
-                return false;
-            break;
-        default:
-            break;
-        }
+    } 
+    // Check the compliance of GUAMI against configuration
+    if (nf_instance->nf_type == OpenAPI_nf_type_AMF &&
+        requester_nf_type == OpenAPI_nf_type_AMF &&
+        discovery_option->guami_presence) {
+        ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+            if (ogs_sbi_check_amf_info_guami(&nf_info->amf, &discovery_option->guami)) { return true; }
+            else { continue; }
+        } return false;
     }
-
+    // Check the compliance of S-NSSAI and optional TAI against configuration 
+    else if (nf_instance->nf_type == OpenAPI_nf_type_SMF &&
+        discovery_option->num_of_snssais && 
+        discovery_option->dnn) {
+        ogs_list_for_each(&nf_instance->nf_info_list, nf_info) {
+            if (ogs_sbi_check_smf_info_slice(&nf_info->smf, &discovery_option->snssais[0], discovery_option->dnn)) {
+                if (discovery_option->tai_presence) {
+                    if (ogs_sbi_check_smf_info_tai(&nf_info->smf, &discovery_option->tai)) { return true; }
+                    else { continue; }
+                } else { return true; }
+            } else { continue; }
+        } return false;
+    }
     return true;
 }
 

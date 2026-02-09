@@ -799,6 +799,31 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                     ogs_timer_start(amf_ue->mobile_reachable.timer,
                             ogs_time_from_sec(
                                 amf_self()->time.t3512.value + 240));
+
+                    
+                    // #CyberRange# Issue implict deregistration directly
+                    // In fact, you don’t need to speed up the removal of amf_ue context. 
+                    // Because AMF will always retrieve current UE subscription data  
+                    // including NSSAI from UDM when UE completes a registration.
+
+                    // state = AMF_NETWORK_INITIATED_IMPLICIT_DE_REGISTERED;
+
+                    // if (UDM_SDM_SUBSCRIBED(amf_ue)) {
+                    //     r = amf_ue_sbi_discover_and_send(
+                    //             OGS_SBI_SERVICE_TYPE_NUDM_SDM, NULL,
+                    //             amf_nudm_sdm_build_subscription_delete,
+                    //             amf_ue, state, NULL);
+                    //     ogs_expect(r == OGS_OK);
+                    //     ogs_assert(r != OGS_ERROR);
+                    // } else if (PCF_AM_POLICY_ASSOCIATED(amf_ue)) {
+                    //     r = amf_ue_sbi_discover_and_send(
+                    //         OGS_SBI_SERVICE_TYPE_NPCF_AM_POLICY_CONTROL,
+                    //         NULL,
+                    //         amf_npcf_am_policy_control_build_delete,
+                    //         amf_ue, state, NULL);
+                    //     ogs_expect(r == OGS_OK);
+                    //     ogs_assert(r != OGS_ERROR);
+                    // }
                 }
 
             } else if (state == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL) {

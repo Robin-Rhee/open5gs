@@ -154,6 +154,7 @@ int ngap_send_to_5gsm(amf_ue_t *amf_ue, ogs_pkbuf_t *esmbuf)
 int ngap_send_to_nas(ran_ue_t *ran_ue,
         NGAP_ProcedureCode_t procedureCode, NGAP_NAS_PDU_t *nasPdu)
 {
+    ogs_trace ("#CyberRange# ngap_send_to_nas");
     int rv;
 
     amf_ue_t *amf_ue = NULL;
@@ -256,6 +257,7 @@ int ngap_send_to_nas(ran_ue_t *ran_ue,
 
     if (h->extended_protocol_discriminator ==
             OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GMM) {
+        ogs_trace ("#CyberRange# ngap_send_to_nas (OGS_NAS_EXTENDED_PROTOCOL_DISCRIMINATOR_5GMM)");
         e = amf_event_new(AMF_EVENT_5GMM_MESSAGE);
         if (!e) {
             ogs_error("ngap_send_to_nas() failed");

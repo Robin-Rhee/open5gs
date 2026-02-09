@@ -52,7 +52,7 @@ void ogs_nas_mac_calculate(uint8_t algorithm_identity,
 
         ogs_aes_cmac_calculate(cmac, knas_int, pkbuf->data, pkbuf->len);
         memcpy(mac, cmac, 4);
-
+        
         ogs_pkbuf_pull(pkbuf, 8);
 
         break;

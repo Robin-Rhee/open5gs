@@ -280,7 +280,7 @@ static int client_discover_cb(
             OGS_5GMM_CAUSE_PAYLOAD_WAS_NOT_FORWARDED, AMF_NAS_BACKOFF_TIME);
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);
-
+OGS_5GMM_CAUSE_PAYLOAD_WAS_NOT_FORWARDED
         goto cleanup;
     }
 
@@ -305,7 +305,7 @@ static int client_discover_cb(
     }
 
     ogs_nnrf_disc_handle_nf_discover_search_result(message.SearchResult);
-
+    // #CyberRange# Consider add more indicator that shows a specific cause
     amf_sbi_select_nf(&sess->sbi,
             service_type, requester_nf_type, discovery_option);
 

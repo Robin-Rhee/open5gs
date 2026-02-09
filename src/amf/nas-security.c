@@ -118,6 +118,7 @@ ogs_pkbuf_t *nas_5gs_security_encode(
 int nas_5gs_security_decode(amf_ue_t *amf_ue,
     ogs_nas_security_header_type_t security_header_type, ogs_pkbuf_t *pkbuf)
 {
+    ogs_trace ("#CyberRange# nas_5gs_security_decode");
     ogs_assert(amf_ue);
     ogs_assert(pkbuf);
     ogs_assert(pkbuf->data);
@@ -149,8 +150,11 @@ int nas_5gs_security_decode(amf_ue_t *amf_ue,
         ogs_assert(ogs_pkbuf_pull(pkbuf, 6));
 
         /* calculate ul_count */
-        if (amf_ue->ul_count.sqn > h->sequence_number)
+        ogs_trace ("#CyberRange#-SQN: Received SQN is %u. Cached SQN is %u", h->sequence_number, amf_ue->ul_count.sqn);
+        if (amf_ue->ul_count.sqn > h->sequence_number) {
+            ogs_trace ("#CyberRange#-SQN: Overflow");
             amf_ue->ul_count.overflow++;
+        }
         amf_ue->ul_count.sqn = h->sequence_number;
 
         if (security_header_type.integrity_protected) {
@@ -166,6 +170,7 @@ int nas_5gs_security_decode(amf_ue_t *amf_ue,
             h->message_authentication_code = original_mac;
 
             memcpy(&mac32, mac, NAS_SECURITY_MAC_SIZE);
+            ogs_trace ("#CyberRange#-MAC: Received MAC is 0x%x. Calculated MAC is 0x%x", be32toh(h->message_authentication_code), be32toh(mac32));
             if (h->message_authentication_code != mac32) {
                 ogs_warn("NAS MAC verification failed(0x%x != 0x%x)",
                     be32toh(h->message_authentication_code), be32toh(mac32));

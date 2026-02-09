@@ -44,7 +44,7 @@ nrf_sources = files('''
     ../main.c
 '''.split())
 
-executable('open5gs-nrfd',
+executable('nrf',
     sources : nrf_sources,
     c_args : '-DDEFAULT_CONFIG_FILENAME="@0@/nrf.yaml"'.format(open5gs_sysconfdir),
     include_directories : srcinc,

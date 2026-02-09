@@ -2735,11 +2735,15 @@ void amf_ue_save_memento(amf_ue_t *amf_ue, amf_ue_memento_t *memento)
     memcpy(memento->nh, amf_ue->nh, OGS_SHA256_DIGEST_SIZE);
     memento->selected_enc_algorithm = amf_ue->selected_enc_algorithm;
     memento->selected_int_algorithm = amf_ue->selected_int_algorithm;
+    ogs_trace ("#CyberRange# amf_ue_save_memento");
+    ogs_trace ("#CyberRange#-knas: Save knas_int=%x%x%x%x", amf_ue->knas_int[0], amf_ue->knas_int[1], amf_ue->knas_int[2], amf_ue->knas_int[3]);
+    ogs_trace ("#CyberRange#-ul-count: Save ul_count.overflow=%u, ul_count.sqn=%u", amf_ue->ul_count.overflow, amf_ue->ul_count.sqn);
 }
 
 /* Restore the sensitive context fields into the UE context */
 void amf_ue_restore_memento(amf_ue_t *amf_ue, const amf_ue_memento_t *memento)
 {
+    
     ogs_assert(amf_ue);
     ogs_assert(memento);
 
@@ -2758,10 +2762,12 @@ void amf_ue_restore_memento(amf_ue_t *amf_ue, const amf_ue_memento_t *memento)
     memcpy(amf_ue->knas_enc, memento->knas_enc, OGS_SHA256_DIGEST_SIZE/2);
     amf_ue->dl_count = memento->dl_count;
     amf_ue->ul_count.i32 = memento->ul_count;
-    memcpy(amf_ue->kgnb, memento->kgnb, OGS_SHA256_DIGEST_SIZE);
     memcpy(amf_ue->nh, memento->nh, OGS_SHA256_DIGEST_SIZE);
     amf_ue->selected_enc_algorithm = memento->selected_enc_algorithm;
     amf_ue->selected_int_algorithm = memento->selected_int_algorithm;
+    ogs_trace ("#CyberRange# amf_ue_restore_memento");
+    ogs_trace ("#CyberRange#-knas: Restore knas_int=%x%x%x%x", amf_ue->knas_int[0], amf_ue->knas_int[1], amf_ue->knas_int[2], amf_ue->knas_int[3]);
+    ogs_trace ("#CyberRange#-ul-count: Restore ul_count.overflow=%u, ul_count.sqn=%u", amf_ue->ul_count.overflow, amf_ue->ul_count.sqn);
 }
 
 void amf_clear_subscribed_info(amf_ue_t *amf_ue)

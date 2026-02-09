@@ -1,0 +1,141 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "AMF",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/src/amf/amf",
+        // Logging level: fatal|error|warn|info(default)|debug|trace
+        "args": ["-c","/root/ims/native/core/build/conf/amf.yaml", "-e", "debug"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        // "preLaunchTask": "build",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "miDebuggerArgs": ""
+      }, {
+        "name": "UPF",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/src/upf/upf",
+        "args": ["-c","/root/ims/native/core/build/conf/upf.yaml", "-e", "trace"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        // "preLaunchTask": "build",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "miDebuggerArgs": ""
+      }, {
+        "name": "SMF",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/src/smf/smf",
+        "args": ["-c","/root/ims/native/core/build/conf/smf.yaml", "-e", "trace"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        // "preLaunchTask": "build",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "miDebuggerArgs": ""
+      }, {
+        "name": "SCP",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/src/scp/scp",
+        "args": ["-c","/root/ims/native/core/build/conf/scp.yaml", "-e", "trace"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        // "preLaunchTask": "build",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "miDebuggerArgs": ""
+      }, {
+        "name": "NRF",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/src/nrf/nrf",
+        "args": ["-c","/root/ims/native/core/build/conf/nrf.yaml", "-e", "trace"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        // "preLaunchTask": "build",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "miDebuggerArgs": ""
+      }, {
+        "name": "PCF",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/src/pcf/pcf",
+        "args": ["-c","/root/ims/native/core/build/conf/pcf.yaml", "-e", "trace"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        // "preLaunchTask": "build",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "miDebuggerArgs": ""
+      }
+      
+    ],
+    "compounds": [
+      {
+          "name": "SMF & UPF",
+          "configurations": ["SMF", "UPF"]
+      }
+    ]
+  }
+  

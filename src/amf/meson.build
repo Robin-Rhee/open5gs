@@ -85,7 +85,7 @@ amf_sources = files('''
     ../main.c
 '''.split())
 
-executable('open5gs-amfd',
+executable('amf',
     sources : amf_sources,
     c_args : '-DDEFAULT_CONFIG_FILENAME="@0@/amf.yaml"'.format(open5gs_sysconfdir),
     include_directories : srcinc,

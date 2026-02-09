@@ -613,6 +613,7 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message)
 void ngap_handle_uplink_nas_transport(
         amf_gnb_t *gnb, ogs_ngap_message_t *message)
 {
+    ogs_trace ("#CyberRange# ngap_handle_uplink_nas_transport");
     char buf[OGS_ADDRSTRLEN];
     int i, r;
 

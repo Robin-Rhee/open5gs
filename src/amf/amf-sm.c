@@ -45,6 +45,7 @@ void amf_state_final(ogs_fsm_t *s, amf_event_t *e)
 
 void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
 {
+    
     int r, rv;
     char buf[OGS_ADDRSTRLEN];
     const char *api_version = NULL;
@@ -945,6 +946,7 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
         break;
 
     case AMF_EVENT_5GMM_MESSAGE:
+        ogs_trace ("#CyberRange# amf_state_operational (AMF_EVENT_5GMM_MESSAGE)");
         pkbuf = e->pkbuf;
         ogs_assert(pkbuf);
 
@@ -986,10 +988,12 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
                  * Now, We will check the MAC in the NAS message*/
                 ogs_nas_security_header_type_t h;
                 h.type = e->nas.type;
+                ogs_trace ("#CyberRange# amf_state_operational (AMF_EVENT_5GMM_MESSAGE) check if integrity-protected");
                 if (h.integrity_protected) {
                     /* Decryption was performed in NGAP handler.
                      * So, we disabled 'ciphered' not to decrypt NAS message */
                     h.ciphered = 0;
+                    ogs_trace ("#CyberRange# amf_state_operational (AMF_EVENT_5GMM_MESSAGE) decode NAS");
                     if (nas_5gs_security_decode(amf_ue, h, pkbuf) != OGS_OK) {
                         ogs_error("[%s] nas_security_decode() failed",
                                 amf_ue->suci);
