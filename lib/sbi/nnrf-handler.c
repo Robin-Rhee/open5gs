@@ -1275,7 +1275,7 @@ void ogs_nnrf_disc_handle_nf_discover_search_result(
             default:
                 break;
             }
-SearchResult
+
             /* TIME : Update validity from NRF */
             if (SearchResult->is_validity_period &&
                 SearchResult->validity_period) {
