@@ -25,12 +25,10 @@
 #include "gmm-build.h"
 
 int amf_nsmf_pdusession_handle_create_sm_context(
-        amf_sess_t *sess, ogs_sbi_message_t *recvmsg)
+        amf_ue_t *amf_ue, ran_ue_t *ran_ue, amf_sess_t *sess,
+        ogs_sbi_message_t *recvmsg)
 {
     int rv, r;
-
-    amf_ue_t *amf_ue = NULL;
-    ran_ue_t *ran_ue = NULL;
 
     ogs_assert(recvmsg);
 
@@ -39,13 +37,11 @@ int amf_nsmf_pdusession_handle_create_sm_context(
         return OGS_ERROR;
     }
 
-    amf_ue = amf_ue_find_by_id(sess->amf_ue_id);
     if (!amf_ue) {
         ogs_error("UE(amf_ue) Context has already been removed");
         return OGS_ERROR;
     }
 
-    ran_ue = ran_ue_find_by_id(sess->ran_ue_id);
     if (!ran_ue) {
         ogs_error("[%s] RAN-NG Context has already been removed", amf_ue->supi);
         return OGS_ERROR;
@@ -246,12 +242,10 @@ int amf_nsmf_pdusession_handle_create_sm_context(
 }
 
 int amf_nsmf_pdusession_handle_update_sm_context(
-        amf_sess_t *sess, int state, ogs_sbi_message_t *recvmsg)
+        amf_ue_t *amf_ue, ran_ue_t *ran_ue, amf_sess_t *sess,
+        int state, ogs_sbi_message_t *recvmsg)
 {
     int r;
-
-    amf_ue_t *amf_ue = NULL;
-    ran_ue_t *ran_ue = NULL;
 
     ogs_assert(recvmsg);
 
@@ -260,13 +254,10 @@ int amf_nsmf_pdusession_handle_update_sm_context(
         return OGS_ERROR;
     }
 
-    amf_ue = amf_ue_find_by_id(sess->amf_ue_id);
     if (!amf_ue) {
         ogs_error("UE(amf_ue) Context has already been removed");
         return OGS_ERROR;
     }
-
-    ran_ue = ran_ue_find_by_id(sess->ran_ue_id);
 
     if (recvmsg->res_status == OGS_SBI_HTTP_STATUS_NO_CONTENT ||
         recvmsg->res_status == OGS_SBI_HTTP_STATUS_OK) {
@@ -586,15 +577,19 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                  * 6. UEContextReleaseComplete
                  */
                 ogs_warn("PDUSessionResourceSetupResponse(Unsuccessful)");
-                ogs_assert(ran_ue);
-                ogs_assert(ran_ue->deactivation.group);
+                if (ran_ue) {
+                    ogs_assert(ran_ue->deactivation.group);
 
-                r = ngap_send_ran_ue_context_release_command(ran_ue,
-                        ran_ue->deactivation.group,
-                        ran_ue->deactivation.cause,
-                        NGAP_UE_CTX_REL_NG_REMOVE_AND_UNLINK, 0);
-                ogs_expect(r == OGS_OK);
-                ogs_assert(r != OGS_ERROR);
+                    r = ngap_send_ran_ue_context_release_command(ran_ue,
+                            ran_ue->deactivation.group,
+                            ran_ue->deactivation.cause,
+                            NGAP_UE_CTX_REL_NG_REMOVE_AND_UNLINK, 0);
+                    ogs_expect(r == OGS_OK);
+                    ogs_assert(r != OGS_ERROR);
+                } else {
+                    ogs_warn("[%s] RAN-NG Context has already been removed",
+                            amf_ue->supi);
+                }
 
             } else if (state == AMF_UPDATE_SM_CONTEXT_MODIFIED) {
                 /*
@@ -625,15 +620,19 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                  */
 
                 if (AMF_SESSION_SYNC_DONE(amf_ue, state)) {
-                    ogs_assert(ran_ue);
-                    ogs_assert(ran_ue->deactivation.group);
+                    if (ran_ue) {
+                        ogs_assert(ran_ue->deactivation.group);
 
-                    r = ngap_send_ran_ue_context_release_command(ran_ue,
-                            ran_ue->deactivation.group,
-                            ran_ue->deactivation.cause,
-                            NGAP_UE_CTX_REL_NG_REMOVE_AND_UNLINK, 0);
-                    ogs_expect(r == OGS_OK);
-                    ogs_assert(r != OGS_ERROR);
+                        r = ngap_send_ran_ue_context_release_command(ran_ue,
+                                ran_ue->deactivation.group,
+                                ran_ue->deactivation.cause,
+                                NGAP_UE_CTX_REL_NG_REMOVE_AND_UNLINK, 0);
+                        ogs_expect(r == OGS_OK);
+                        ogs_assert(r != OGS_ERROR);
+                    } else {
+                        ogs_warn("[%s] RAN-NG Context has already been removed",
+                                amf_ue->supi);
+                    }
                 }
 
             } else if (state == AMF_UPDATE_SM_CONTEXT_REGISTRATION_REQUEST) {
@@ -733,11 +732,10 @@ int amf_nsmf_pdusession_handle_update_sm_context(
             } else if (state == AMF_UPDATE_SM_CONTEXT_HANDOVER_CANCEL) {
 
                 if (AMF_SESSION_SYNC_DONE(amf_ue, state)) {
-                    ran_ue_t *source_ue = NULL, *target_ue = NULL;
+                    ran_ue_t *target_ue = NULL;
 
-                    source_ue = ran_ue_find_by_id(sess->ran_ue_id);
-                    ogs_assert(source_ue);
-                    target_ue = ran_ue_find_by_id(source_ue->target_ue_id);
+                    ogs_assert(ran_ue);
+                    target_ue = ran_ue_find_by_id(ran_ue->target_ue_id);
                     if (target_ue) {
                         r = ngap_send_ran_ue_context_release_command(
                                 target_ue,
@@ -759,10 +757,9 @@ int amf_nsmf_pdusession_handle_update_sm_context(
             } else if (state == AMF_REMOVE_S1_CONTEXT_BY_LO_CONNREFUSED) {
                 if (AMF_SESSION_SYNC_DONE(amf_ue, state)) {
 
-                    amf_ue_deassociate(amf_ue);
-
                     if (ran_ue) {
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
+                        amf_ue_deassociate_ran_ue(amf_ue, ran_ue);
                         ran_ue_remove(ran_ue);
                     } else {
                         ogs_warn("[%s] RAN-NG Context has already been removed",
@@ -829,14 +826,13 @@ int amf_nsmf_pdusession_handle_update_sm_context(
             } else if (state == AMF_REMOVE_S1_CONTEXT_BY_RESET_ALL) {
                 if (AMF_SESSION_SYNC_DONE(amf_ue, state)) {
 
-                    amf_ue_deassociate(amf_ue);
-
                     if (ran_ue) {
                         amf_gnb_t *gnb = NULL;
 
                         gnb = amf_gnb_find_by_id(ran_ue->gnb_id);
 
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
+                        amf_ue_deassociate_ran_ue(amf_ue, ran_ue);
                         ran_ue_remove(ran_ue);
 
                         if (gnb && ogs_list_count(&gnb->ran_ue_list) == 0) {
@@ -886,14 +882,13 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                 if (AMF_SESSION_SYNC_DONE(amf_ue, state)) {
                     ran_ue_t *iter = NULL;
 
-                    amf_ue_deassociate(amf_ue);
-
                     if (ran_ue) {
                         amf_gnb_t *gnb = NULL;
 
                         gnb = amf_gnb_find_by_id(ran_ue->gnb_id);
 
                         ogs_debug("    SUPI[%s]", amf_ue->supi);
+                        amf_ue_deassociate_ran_ue(amf_ue, ran_ue);
                         ran_ue_remove(ran_ue);
 
                         if (gnb) {
@@ -974,7 +969,7 @@ int amf_nsmf_pdusession_handle_update_sm_context(
                 sess->n2_released == true &&
                 sess->resource_status == OpenAPI_resource_status_RELEASED) {
                 amf_nsmf_pdusession_handle_release_sm_context(
-                        sess, AMF_RELEASE_SM_CONTEXT_NO_STATE);
+                        amf_ue, ran_ue, sess, AMF_RELEASE_SM_CONTEXT_NO_STATE);
             }
         }
     } else {
@@ -1126,24 +1121,20 @@ int amf_nsmf_pdusession_handle_update_sm_context(
     return OGS_OK;
 }
 
-int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
+int amf_nsmf_pdusession_handle_release_sm_context(
+        amf_ue_t *amf_ue, ran_ue_t *ran_ue, amf_sess_t *sess, int state)
 {
     int r;
-    amf_ue_t *amf_ue = NULL;
-    ran_ue_t *ran_ue = NULL;
 
     if (!sess) {
         ogs_error("Session has already been removed");
         return OGS_ERROR;
     }
 
-    amf_ue = amf_ue_find_by_id(sess->amf_ue_id);
     if (!amf_ue) {
         ogs_error("UE(amf_ue) Context has already been removed");
         return OGS_ERROR;
     }
-
-    ran_ue = ran_ue_find_by_id(sess->ran_ue_id);
 
     /*
      * To check if Reactivation Request has been used.
@@ -1159,7 +1150,7 @@ int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
     if (sess->old_gsm_type == OGS_NAS_5GS_PDU_SESSION_RELEASE_COMPLETE &&
         sess->current_gsm_type ==
             OGS_NAS_5GS_PDU_SESSION_ESTABLISHMENT_REQUEST) {
-        ogs_error("[%s:%d] Do not remove Session due to Reactivation-requested",
+        ogs_warn("[%s:%d] Session retained: reactivation has been requested",
                 amf_ue->supi, sess->psi);
 
         /*
@@ -1262,6 +1253,9 @@ int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
                      * 6. UEContextReleaseComplete
                      */
                     if (UDM_SDM_SUBSCRIBED(amf_ue)) {
+                        ogs_info("[%s] UDM_SDM_SUCSCRIBED "
+                                "in de_registered",
+                                amf_ue->supi);
                         r = amf_ue_sbi_discover_and_send(
                                 OGS_SBI_SERVICE_TYPE_NUDM_SDM, NULL,
                                 amf_nudm_sdm_build_subscription_delete,
@@ -1269,6 +1263,8 @@ int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
                         ogs_expect(r == OGS_OK);
                         ogs_assert(r != OGS_ERROR);
                     } else if (PCF_AM_POLICY_ASSOCIATED(amf_ue)) {
+                        ogs_info("[%s] PCF_AM_POLICY_ASSOCIATED "
+                                "in de_registered", amf_ue->supi);
                         r = amf_ue_sbi_discover_and_send(
                                 OGS_SBI_SERVICE_TYPE_NPCF_AM_POLICY_CONTROL,
                                 NULL,
@@ -1277,6 +1273,7 @@ int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
                         ogs_expect(r == OGS_OK);
                         ogs_assert(r != OGS_ERROR);
                     } else {
+                        ogs_info("[%s] Deregistration Accept in de_registered", amf_ue->supi);
                         r = nas_5gs_send_de_registration_accept(amf_ue);
                         ogs_expect(r == OGS_OK);
                         ogs_assert(r != OGS_ERROR);
@@ -1284,24 +1281,25 @@ int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
 
                 } else if (OGS_FSM_CHECK(&amf_ue->sm,
                             gmm_state_authentication)) {
-                    ogs_fatal("Release SM Context in authentication");
-                    ogs_assert_if_reached();
+                    ogs_warn("[%s] Release SM Context in authentication",
+                            amf_ue->supi);
                 } else if (OGS_FSM_CHECK(
                             &amf_ue->sm, gmm_state_security_mode)) {
-                    ogs_fatal("Release SM Context in security-mode");
-                    ogs_assert_if_reached();
+                    ogs_warn("[%s] Release SM Context in security-mode",
+                            amf_ue->supi);
                 } else if (OGS_FSM_CHECK(&amf_ue->sm,
                                 gmm_state_initial_context_setup)) {
-                    ogs_fatal("Release SM Context in initial-context-setup");
-                    ogs_assert_if_reached();
+                    ogs_warn("[%s] Release SM Context in "
+                            "initial-context-setup", amf_ue->supi);
                 } else if (OGS_FSM_CHECK(&amf_ue->sm, gmm_state_registered)) {
-                    ogs_fatal("Release SM Context in registered");
-                    ogs_assert_if_reached();
+                    ogs_warn("[%s] Release SM Context in registered",
+                            amf_ue->supi);
                 } else if (OGS_FSM_CHECK(&amf_ue->sm, gmm_state_exception)) {
-                    ogs_fatal("Release SM Context in exception");
-                    ogs_assert_if_reached();
+                    ogs_warn("[%s] Release SM Context in exception",
+                            amf_ue->supi);
                 } else {
-                    ogs_fatal("Release SM Context : INVALID STATE");
+                    ogs_fatal("[%s] Release SM Context : INVALID STATE",
+                            amf_ue->supi);
                     ogs_assert_if_reached();
                 }
 
@@ -1401,12 +1399,26 @@ int amf_nsmf_pdusession_handle_release_sm_context(amf_sess_t *sess, int state)
 
                 } else if (OGS_FSM_CHECK(
                             &amf_ue->sm, gmm_state_security_mode)) {
-                    ogs_fatal("Release SM Context in security-mode");
-                    ogs_assert_if_reached();
+    /*
+     * [Issue #4012]
+     * avoid abort on SM context release in security-mode state.
+     *
+     * Replace ogs_assert_if_reached() with ogs_error to log the invalid state
+     * and keep AMF running; logs error for debugging and improves availability.
+     */
+                    ogs_error("Invalid state transition: cannot release "
+                            "SM Context during security-mode state");
                 } else if (OGS_FSM_CHECK(&amf_ue->sm,
                                 gmm_state_initial_context_setup)) {
-                    ogs_fatal("Release SM Context in initial-context-setup");
-                    ogs_assert_if_reached();
+    /*
+     * [Issue #3946]
+     * avoid abort on SM context release in initial-setup state.
+     *
+     * Replace ogs_assert_if_reached() with ogs_error to log the invalid state
+     * and keep AMF running; logs error for debugging and improves availability.
+     */
+                    ogs_error("Invalid state transition: cannot release "
+                            "SM Context during initial-context-setup");
                 } else if (OGS_FSM_CHECK(&amf_ue->sm, gmm_state_registered)) {
                     /*
                      * 1. PDU session release request
